@@ -1,0 +1,8 @@
+git+https://github.com/pipecat-ai/pipecat.git
+git+https://github.com/pipecat-ai/small-webrtc-prebuilt.git
+
+fastapi
+uvicorn
+python-dotenv
+deepgram-sdk
+google-genai

@@ -1,0 +1,8 @@
+###
+docker run --rm -p 7880:7880 \
+-e LIVEKIT_KEYS="devkey: secret" \
+livekit/livekit-server \
+--dev
+###
+
+

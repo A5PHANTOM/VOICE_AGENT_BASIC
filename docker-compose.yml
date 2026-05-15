@@ -1,0 +1,11 @@
+services:
+  voice-agent:
+    build: .
+    container_name: pipecat-agent
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+    
