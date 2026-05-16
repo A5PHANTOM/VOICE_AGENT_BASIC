@@ -1,8 +1,12 @@
 git+https://github.com/pipecat-ai/pipecat.git
-git+https://github.com/pipecat-ai/small-webrtc-prebuilt.git
+pipecat-ai-small-webrtc-prebuilt
 
+google-genai
+google-api-core
+google-generativeai
+opencv-python-headless
+deepgram-sdk
+aiortc
 fastapi
 uvicorn
 python-dotenv
-deepgram-sdk
-google-genai
