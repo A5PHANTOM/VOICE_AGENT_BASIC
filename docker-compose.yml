@@ -5,12 +5,13 @@ services:
 
     env_file:
       - .env
-
-    volumes:
-      - .:/app
-
+    environment:
+      # Disable mDNS to avoid asyncio.CancelledError in aiortc during Docker networking
+      - AIOICE_FORCE_RENEWAL=true
+      - PUBLIC_CLIENT_URL=http://localhost:7870/client
     ports:
-      - "7860:7860"
+      - "7870:7860"
+    command: python main.py -t webrtc  --host 0.0.0.0
 
     stdin_open: true
     tty: true
