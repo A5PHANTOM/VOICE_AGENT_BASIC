@@ -5,11 +5,17 @@ from dotenv import load_dotenv
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineTask
+from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.processors.aggregators.llm_context import LLMContext
+from pipecat.processors.aggregators.llm_response_universal import (
+    LLMContextAggregatorPair,
+    LLMUserAggregatorParams,
+)
 
 from pipecat.runner.run import main
 from pipecat.runner.types import SmallWebRTCRunnerArguments
 
-from pipecat.services.google.llm import GoogleLLMService
+from pipecat.services.groq.llm import GroqLLMService
 
 from pipecat.services.deepgram.stt import (
     DeepgramSTTService,
@@ -28,6 +34,13 @@ from pipecat.transports.base_transport import (
 )
 
 load_dotenv()
+
+
+DEFAULT_VOICE_SYSTEM_PROMPT = (
+    "You are a helpful assistant in a voice conversation. Your responses will be spoken aloud, "
+    "so avoid emojis, bullet points, or other formatting that can't be spoken. Respond to what the "
+    "user said in a creative, helpful, and brief way."
+)
 
 
 def get_client_url() -> str:
@@ -52,9 +65,16 @@ async def bot(runner_args: SmallWebRTCRunnerArguments):
         api_key=os.getenv("DEEPGRAM_API_KEY"),
     )
 
-    # Gemini LLM
-    llm = GoogleLLMService(
-        api_key=os.getenv("GEMINI_API_KEY"),
+    # Groq LLM
+    llm = GroqLLMService(
+        api_key=os.getenv("GROQ_API_KEY"),
+        settings=GroqLLMService.Settings(
+            model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+            system_instruction=os.getenv(
+                "VOICE_ASSISTANT_PROMPT",
+                DEFAULT_VOICE_SYSTEM_PROMPT,
+            ),
+        ),
     )
 
     # Text-to-Speech
@@ -62,14 +82,22 @@ async def bot(runner_args: SmallWebRTCRunnerArguments):
         api_key=os.getenv("DEEPGRAM_API_KEY"),
     )
 
+    context = LLMContext()
+    user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
+        context,
+        user_params=LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer()),
+    )
+
     # Pipeline
     pipeline = Pipeline(
         [
             transport.input(),
             stt,
+            user_aggregator,
             llm,
             tts,
             transport.output(),
+            assistant_aggregator,
         ]
     )
 

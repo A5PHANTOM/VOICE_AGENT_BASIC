@@ -4,6 +4,7 @@ pipecat-ai-small-webrtc-prebuilt
 google-genai
 google-api-core
 google-generativeai
+groq
 opencv-python-headless
 deepgram-sdk
 aiortc
