@@ -3,12 +3,15 @@ services:
     build: .
     container_name: pipecat-agent
 
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
     env_file:
       - .env
     environment:
       # Disable mDNS to avoid asyncio.CancelledError in aiortc during Docker networking
       - AIOICE_FORCE_RENEWAL=true
-      - PUBLIC_CLIENT_URL=http://localhost:7870/client
     ports:
       - "7870:7860"
     command: python main.py -t webrtc  --host 0.0.0.0
