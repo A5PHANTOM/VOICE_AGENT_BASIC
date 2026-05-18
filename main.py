@@ -10,6 +10,7 @@ from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
     LLMUserAggregatorParams,
+    LLMAssistantAggregatorParams,
 )
 
 from pipecat.runner.run import main
@@ -86,6 +87,7 @@ async def bot(runner_args: SmallWebRTCRunnerArguments):
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
         context,
         user_params=LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer()),
+        assistant_params=LLMAssistantAggregatorParams(),
     )
 
     # Pipeline
@@ -96,8 +98,8 @@ async def bot(runner_args: SmallWebRTCRunnerArguments):
             user_aggregator,
             llm,
             tts,
-            transport.output(),
             assistant_aggregator,
+            transport.output(),
         ]
     )
 
