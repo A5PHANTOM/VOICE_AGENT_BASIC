@@ -37,6 +37,29 @@ from pipecat.transports.base_transport import (
 load_dotenv()
 
 
+class SileroVADAdapter:
+    """Adapter around SileroVADAnalyzer to accept configurable params and proxy calls.
+
+    The upstream `SileroVADAnalyzer` constructor in this environment doesn't accept
+    `confidence`, `start_secs`, or `stop_secs`, so we instantiate the original
+    and apply those attributes if available. All attribute/method access is
+    proxied to the inner analyzer.
+    """
+    def __init__(self, confidence: float = 0.6, start_secs: float = 0.2, stop_secs: float = 0.7):
+        self._inner = SileroVADAnalyzer()
+        for name, value in (("confidence", confidence), ("start_secs", start_secs), ("stop_secs", stop_secs)):
+            if hasattr(self._inner, name):
+                try:
+                    setattr(self._inner, name, value)
+                except Exception:
+                    # Ignore if attribute is read-only or setting fails
+                    pass
+
+    def __getattr__(self, item):
+        return getattr(self._inner, item)
+
+
+
 DEFAULT_VOICE_SYSTEM_PROMPT = (
     "You are a helpful assistant in a voice conversation. Your responses will be spoken aloud, "
     "so avoid emojis, bullet points, or other formatting that can't be spoken. Respond to what the "
@@ -86,7 +109,11 @@ async def bot(runner_args: SmallWebRTCRunnerArguments):
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
         context,
-        user_params=LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer()),
+        user_params=LLMUserAggregatorParams(vad_analyzer=SileroVADAdapter(
+            confidence=0.6,
+            start_secs=0.2,
+            stop_secs=0.7,
+        )),
         assistant_params=LLMAssistantAggregatorParams(),
     )
 
